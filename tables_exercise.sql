@@ -17,7 +17,7 @@ DESCRIBE employees;
 -- 		dept_emp, dept_manager, employees, salaries, titles
 
 -- #9 What is the relationship between the employees and the departments tables?
--- 		There is no relationship as they share no common fields/keys.  They would have to be related to each other through the dept_manager table
+-- 		There is no direct relationship as they share no common fields/keys.  They would have to be related to each other through another table
 
 -- #10 Show the SQL that created the dept_manager table. Write the SQL it takes to show this as your exercise solution.
 SHOW CREATE TABLE dept_manager;
