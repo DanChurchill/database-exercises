@@ -22,5 +22,5 @@ SELECT MIN(salary), MAX(salary) FROM salaries;
 -- the first 4 characters of the employees last name, an underscore, the month the employee was born, 
 -- and the last two digits of the year that they were born. 
 
-SELECT CONCAT(SUBSTR(first_name,1,1), SUBSTR(last_name,-4,4), '_', SUBSTR(birth_date,6,2), SUBSTR(birth_date,3,2)) AS 'username'
+SELECT CONCAT(SUBSTR(first_name,1,1), SUBSTR(last_name,-4,4), '_', SUBSTR(birth_date,6,2), SUBSTR(birth_date,3,2)) AS 'username', first_name, last_name, birth_date
 FROM employees;
