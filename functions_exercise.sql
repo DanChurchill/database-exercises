@@ -15,7 +15,8 @@ WHERE (hire_date BETWEEN '1990-01-01' AND '1999-12-31') AND birth_date LIKE '%-1
 ORDER BY birth_date, hire_date desc;
 
 -- Find the smallest and largest current salary from the salaries table.
-SELECT MIN(salary), MAX(salary) FROM salaries;
+SELECT MIN(salary), MAX(salary) FROM salaries
+WHERE to_date > NOW();
 
 -- Use your knowledge of built in SQL functions to generate a username for all of the employees. 
 -- A username should be all lowercase, and consist of the first character of the employees first name, 
