@@ -66,7 +66,7 @@ GROUP BY T.title;
 -- Find the current salary of all current managers.
 SELECT D.dept_name AS 'Department Name', CONCAT(E.first_name, " ", E.last_name) AS 'Name', S.salary AS 'Salary'
 FROM departments AS D
-RIGHT JOIN dept_manager AS DM
+JOIN dept_manager AS DM
 ON D.dept_no = DM.dept_no
 JOIN employees AS E
 ON DM.emp_no = E.emp_no
@@ -87,7 +87,7 @@ ORDER BY D.dept_no;
 -- Which department has the highest average salary? Hint: Use current not historic information.
 SELECT D.dept_name AS 'Department', AVG(S.salary) AS Average_Salary
 FROM departments AS D
-LEFT JOIN dept_emp as DE
+JOIN dept_emp as DE
 ON D.dept_no = DE.dept_no
 JOIN salaries AS S
 ON DE.emp_no = S.emp_no
@@ -152,19 +152,22 @@ WHERE DE.to_date > NOW() AND DM.to_date > NOW();
 
 
 -- Bonus Who is the highest paid employee within each department.
-SELECT 
-	D.dept_name AS Department,
-	MAX(S.salary) AS Salary
-    -- CONCAT(E.first_name, ' ', E.last_name)
-FROM employees AS E
+SELECT A.department, A.Salary,
+	CONCAT(E.first_name, ' ', E.last_name) AS 'Full Name'
+FROM 
+(SELECT D.dept_name AS Department
+	, MAX(S.salary) AS Salary
+FROM departments AS D
+JOIN dept_emp AS DE
+ON D.dept_no = DE.dept_no
 JOIN salaries AS S
-ON E.emp_no = S.emp_no
-JOIN dept_emp AS DM
-ON E.emp_no = DM.emp_no
-JOIN departments AS D
-ON DM.dept_no = D.dept_no
-WHERE S.to_date > NOW()
-GROUP BY 1
-
-
+ON DE.emp_no = S.emp_no
+WHERE (DE.to_date > NOW() AND S.to_date > NOW())
+GROUP BY Department) AS A
+JOIN salaries
+ON A.salary = salaries.salary
+JOIN employees AS E
+ON salaries.emp_no = E.emp_no
+ORDER BY department
 ;
+
