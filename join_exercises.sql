@@ -59,7 +59,9 @@ JOIN dept_emp as DE
 ON T.emp_no = DE.emp_no
 JOIN departments AS D
 ON DE.dept_no = D.dept_no
-WHERE T.to_date > NOW() AND D.dept_name = 'Customer Service'
+WHERE T.to_date > NOW() AND 
+	D.dept_name = 'Customer Service' AND
+    DE.to_date > NOW()
 GROUP BY T.title;
 
 
