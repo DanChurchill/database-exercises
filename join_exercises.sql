@@ -93,7 +93,7 @@ JOIN dept_emp as DE
 ON D.dept_no = DE.dept_no
 JOIN salaries AS S
 ON DE.emp_no = S.emp_no
-WHERE S.to_date > NOW()
+WHERE S.to_date > NOW() AND DE.to_date > NOW()
 GROUP BY D.Dept_no
 ORDER BY Average_Salary DESC
 LIMIT 1;
