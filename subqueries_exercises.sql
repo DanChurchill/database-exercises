@@ -38,9 +38,9 @@ SELECT STDDEV(salary) FROM salaries WHERE to_date > NOW();
 
 	-- get salaries +/- one std deviation from mean (should be ~68% of 240,124, or ~163,284)
 SELECT salary FROM salaries 
-WHERE to_date > NOW() 
-	AND salary > (SELECT AVG(salary) FROM salaries WHERE to_date > NOW()) - (SELECT STDDEV(salary) FROM salaries WHERE to_date > NOW())
-	AND salary < (SELECT AVG(salary) FROM salaries WHERE to_date > NOW()) + (SELECT STDDEV(salary) FROM salaries WHERE to_date > NOW())
+WHERE (to_date > NOW())
+	AND salary BETWEEN (SELECT AVG(salary) FROM salaries WHERE to_date > NOW()) - (SELECT STDDEV(salary) FROM salaries WHERE to_date > NOW())
+	AND (SELECT AVG(salary) FROM salaries WHERE to_date > NOW()) + (SELECT STDDEV(salary) FROM salaries WHERE to_date > NOW())
 ORDER BY salary;
 				-- returned 161,846 salaries ranging from 54,703 to 89,322
 
