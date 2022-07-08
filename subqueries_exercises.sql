@@ -26,7 +26,8 @@ SELECT * FROM employees WHERE emp_no IN (SELECT emp_no FROM dept_manager WHERE t
 -- 5. Find all the employees who currently have a higher salary than the companies overall, historical average salary.
 SELECT * FROM employees WHERE emp_no IN(
 	SELECT emp_no FROM salaries 
-    WHERE salary > (SELECT AVG(salary) FROM salaries) AND to_date > NOW());
+    WHERE salary > (SELECT AVG(salary) FROM salaries) 
+		AND to_date > NOW());
 		-- 154543 employees returned
 
 -- 6. How many current salaries are within 1 standard deviation of the current highest salary? 
@@ -48,7 +49,14 @@ WHERE (to_date > NOW())
     AND (SELECT MAX(salary) FROM salaries WHERE to_date > NOW())
 ORDER BY salary;
 				-- returned 83 salaries ranging from 140,974 and 158,220
-                -- .0345%
+SELECT (SELECT COUNT(*) FROM salaries 
+WHERE (to_date > NOW())
+	AND salary BETWEEN (SELECT MAX(salary) FROM salaries WHERE to_date > NOW()) - (SELECT STDDEV(salary) FROM salaries WHERE to_date > NOW())
+    AND (SELECT MAX(salary) FROM salaries WHERE to_date > NOW())
+ORDER BY salary) / 
+(SELECT COUNT(*) FROM salaries WHERE to_date > NOW());
+ 
+ -- .0345%
 
 
 -- BONUS
