@@ -48,6 +48,24 @@ ORDER BY salary;
 -- BONUS
 -- 1. Find all the department names that currently have female managers.
 
+SELECT dept_name FROM departments AS D
+JOIN dept_manager AS DM ON D.dept_no = DM.dept_no
+JOIN employees AS E ON DM.emp_no = E.emp_no
+WHERE E.emp_no IN (SELECT emp_no FROM employees WHERE emp_no IN (SELECT emp_no FROM dept_manager WHERE to_date > NOW()) 
+	AND gender = 'F')
+;
+
 -- 2. Find the first and last name of the employee with the highest salary.
+SELECT emp_no FROM salaries WHERE to_date > NOW() ORDER BY salary DESC LIMIT 1;
+
+SELECT first_name, last_name FROM employees WHERE emp_no = (
+	SELECT emp_no FROM salaries WHERE to_date > NOW() ORDER BY salary DESC LIMIT 1
+	);
+		-- Tokuyasu Pesch
 
 -- 3. Find the department name that the employee with the highest salary works in.
+SELECT dept_name FROM departments AS D
+JOIN dept_emp AS DE ON D.dept_no = DE.dept_no
+WHERE DE.emp_no = (
+	SELECT emp_no FROM salaries WHERE to_date > NOW() ORDER BY salary DESC LIMIT 1);
+		-- Sales
