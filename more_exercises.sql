@@ -453,6 +453,8 @@ SELECT  SUM(pizza_id) / SUM(order_id) FROM pizzas;  -- 1.8316 pizzas
 -- Topping price is affected by the amount of the topping specified. 
 -- A light amount is half of the regular price. An extra amount is 1.5 times the regular price, and double of the topping is double the price.
 
+
+
 SELECT order_id, ROUND(SUM(total_price),2) AS Order_Total
 FROM pizzas
 JOIN (
@@ -476,19 +478,163 @@ JOIN (
 			END),2) AS topping_total
 		FROM pizza_toppings
 		JOIN toppings USING(topping_id)
-		GROUP BY pizza_id
-		ORDER BY pizza_id) AS topping_price_table
+		GROUP BY pizza_id) AS topping_price_table
 		USING(pizza_id)
 		ORDER BY pizza_id) AS pizza_price
 USING(pizza_id)
 GROUP BY order_id
 ORDER BY order_id;
 
+-- Additional Questions:
+-- What is the average price of pizzas that have no cheese?
+SELECT ROUND(AVG(total_price),2)
+FROM leavitt_1861.pizza_price
+JOIN pizza_modifiers USING(pizza_id)
+JOIN modifiers AS m USING(modifier_id)
+WHERE m.modifier_name = 'no cheese';		-- $14.23
 
+-- What is the most common size for pizzas that have extra cheese?
+SELECT size_name, COUNT(pizzas.size_id)
+FROM sizes
+JOIN pizzas USING(size_id)
+JOIN pizza_modifiers USING(pizza_id)
+JOIN modifiers USING(modifier_id)
+WHERE modifier_name = 'extra cheese'
+GROUP BY size_name;
 
+-- What is the most common topping for pizzas that are well done?
+SELECT topping_name, COUNT(pizza_toppings.topping_id) AS total
+FROM toppings
+JOIN pizza_toppings USING(topping_id)
+JOIN pizzas USING(pizza_id)
+JOIN pizza_modifiers USING(pizza_id)
+JOIN modifiers USING(modifier_id)
+WHERE modifier_name = 'well done'
+GROUP BY topping_name;
 
+-- How many pizzas are only cheese (i.e. have no toppings)?
+SELECT COUNT(pizza_id)
+FROM pizzas
+LEFT JOIN pizza_toppings USING(pizza_id)
+WHERE topping_id IS NULL;
 
+-- How may large pizzas have olives on them?
+SELECT COUNT(pizza_id) 
+FROM pizzas
+JOIN sizes USING(size_id)
+JOIN pizza_toppings USING(pizza_id)
+JOIN toppings USING(topping_id)
+WHERE topping_name = 'olives' AND size_name = 'large';
 
+-- What is the average number of toppings per pizza?
+SELECT COUNT(topping_id) / (SELECT COUNT(pizza_id) FROM pizzas) FROM pizza_toppings
+JOIN pizzas USING(pizza_id);
+
+-- What is the average number of pizzas per order?
+SELECT COUNT(pizza_id) / COUNT(DISTINCT order_id) FROM pizzas;
+
+-- What is the average pizza price?
+SELECT ROUND(AVG(total_price),2) FROM leavitt_1861.pizza_price;
+
+-- What is the average order total?
+SELECT ROUND(SUM(total_price) / COUNT(DISTINCT order_id),2) FROM leavitt_1861.pizza_price
+JOIN pizzas USING(pizza_id);
+
+-- What is the average number of items per order?
+SELECT COUNT(topping_id) / COUNT(DISTINCT order_id) FROM pizzas
+JOIN pizza_toppings USING(pizza_id);
+
+-- What is the average number of toppings per pizza for each size of pizza?
+SELECT  size_name, COUNT(topping_id) / COUNT(DISTINCT pizza_id) FROM pizza_toppings
+RIGHT JOIN pizzas USING(pizza_id)
+JOIN sizes USING(size_id)
+GROUP BY size_name;
+
+SELECT  size_name, COUNT(topping_id) / COUNT(DISTINCT pizza_id) AS average_toppings FROM pizza_toppings
+RIGHT JOIN pizzas USING(pizza_id)
+JOIN sizes USING(size_id)
+GROUP BY size_name;
+
+-- What is the average order total for orders that contain more than 1 pizza?
+SELECT ROUND(AVG(total_price),2) FROM (
+	SELECT order_id, COUNT(pizza_id), SUM(total_price) AS total_price FROM pizzas
+	JOIN leavitt_1861.pizza_price USING (pizza_id)
+	GROUP BY order_id
+	HAVING COUNT(pizza_id) > 1
+	) AS derived;
+
+-- What is the most common pizza size for orders that contain only a single pizza?
+SELECT size_name, COUNT(pizza_id) FROM pizzas
+JOIN sizes USING(size_id)
+WHERE order_id IN (
+	SELECT order_id FROM pizzas
+	GROUP BY order_id
+	HAVING COUNT(pizza_id) = 1)
+GROUP BY size_name;
+
+-- How many orders consist of 3+ pizzas? What is the average number of toppings for these orders?
+SELECT COUNT(DISTINCT order_id) AS '3+ orders', COUNT(topping_id) / COUNT(DISTINCT order_id) AS avg_topping_per_order FROM pizzas
+JOIN pizza_toppings USING(pizza_id)
+WHERE order_id IN (
+	SELECT order_id FROM pizzas
+	GROUP BY order_id
+	HAVING COUNT(pizza_id) > 3);
+    
+-- What is the most common topping on large and extra large pizzas?
+
+SELECT topping_name, COUNT(topping_name) FROM pizzas
+JOIN pizza_toppings USING(pizza_id)
+JOIN toppings USING(topping_id)
+JOIN sizes USING(size_id)
+WHERE size_name IN ('large','x-large')
+GROUP BY topping_name
+ORDER BY COUNT(topping_name)
+LIMIT 1;    
+
+-- What is the most common topping for orders that consist of 2 pizzas?
+SELECT topping_name, COUNT(topping_name) FROM pizzas
+JOIN pizza_toppings USING(pizza_id)
+JOIN toppings USING(topping_id)
+JOIN sizes USING(size_id)
+WHERE order_id IN (
+	SELECT order_id FROM pizzas
+	GROUP BY order_id
+	HAVING COUNT(pizza_id) = 2)
+GROUP BY topping_name
+ORDER BY topping_name
+LIMIT 1;
+
+-- Which size of pizza most frequently has modifiers?
+SELECT size_name, COUNT(size_name) FROM pizzas
+JOIN pizza_modifiers USING(pizza_id)
+JOIN sizes USING(size_id)
+GROUP BY size_name
+ORDER BY size_name
+LIMIT 1;
+
+-- What percentage of pizzas with hot sauce have extra cheese?
+SELECT (
+SELECT COUNT(pizza_id) FROM pizza_modifiers
+JOIN modifiers USING(modifier_id)
+WHERE pizza_id IN (
+	SELECT pizza_id from pizza_toppings
+	JOIN toppings USING(topping_id)
+	WHERE topping_name = 'hot sauce')
+)
+/
+(
+	SELECT COUNT(pizza_id) from pizza_toppings
+	JOIN toppings USING(topping_id)
+	WHERE topping_name = 'hot sauce'
+) * 100 AS percent_with_both;
+
+-- What is the average order price for orders that have at least 1 pizza with pineapple?
+SELECT ROUND(SUM(total_price) / COUNT(DISTINCT order_id),2) FROM
+	(SELECT pizza_id, order_id, total_price FROM pizzas
+	JOIN pizza_toppings USING(pizza_id)
+	JOIN toppings USING(topping_id)
+	JOIN leavitt_1861.pizza_price USING(pizza_id)
+	WHERE topping_name = 'pineapple') AS filtered;
 
 
 
